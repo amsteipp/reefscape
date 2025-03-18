@@ -32,13 +32,19 @@ public class Robot extends TimedRobot {
   private final DifferentialDrive m_robotDrive;
   private final Joystick m_leftStick;
   private final Joystick m_rightStick;
-  private final int left_deviceID = 1;
-  private final int right_deviceID = 2;
-  private final SparkMax m_leftDrive;
-  private final SparkMax m_rightDrive;
+  private final int left_deviceID1 = 1; //top left motor
+  private final int right_deviceID1 = 2;//bottom right motor
+  private final int left_deviceID2 = 3; //bottom left motor
+  private final int right_deviceID2 = 4; //top left motor
+  private final SparkMax m_leftDrive1;
+  private final SparkMax m_leftDrive3;
+  private final SparkMax m_rightDrive2;
+  private final SparkMax m_rightDrive4;
   private final XboxController m_controller;
 
   public final Timer m_timer;
+
+  private double auto_count = 0;
 
   // private final SparkMax m_leftMotor = new SparkMax(0);
   // private final SparkMax m_rightMotor = new SparkMax(1);
@@ -51,21 +57,27 @@ public class Robot extends TimedRobot {
     // m_rightMotor.setInverted(true); no need for this
 
     // m_robotDrive = new DifferentialDrive(m_leftMotor::set, m_rightMotor::set);
-    m_leftDrive = new SparkMax(left_deviceID, MotorType.kBrushed);
-    configure_and_invert_motor(m_leftDrive);
+    m_leftDrive1 = new SparkMax(left_deviceID1, MotorType.kBrushed);
+    configure_and_invert_motor(m_leftDrive1);
+    m_leftDrive3 = new SparkMax(left_deviceID2, MotorType.kBrushed);
+    configure_and_invert_motor(m_leftDrive3);
 
-    m_rightDrive = new SparkMax(right_deviceID, MotorType.kBrushed);
-    configure_motor(m_rightDrive);
+    m_rightDrive2 = new SparkMax(right_deviceID1, MotorType.kBrushed);
+    configure_motor(m_rightDrive2);
+    m_rightDrive4 = new SparkMax(right_deviceID2, MotorType.kBrushed);
+    configure_motor(m_rightDrive4);
 
-    m_robotDrive = new DifferentialDrive(m_leftDrive::set, m_rightDrive::set);
+    m_robotDrive = new DifferentialDrive(m_leftDrive1::set, m_rightDrive2::set);
     m_controller = new XboxController(0);
     m_timer = new Timer();
 
     m_leftStick = new Joystick(0);
     m_rightStick = new Joystick(1);
 
-    SendableRegistry.addChild(m_robotDrive, m_leftDrive);
-    SendableRegistry.addChild(m_robotDrive, m_rightDrive);
+    SendableRegistry.addChild(m_robotDrive, m_leftDrive1);
+    SendableRegistry.addChild(m_robotDrive, m_leftDrive3);
+    SendableRegistry.addChild(m_robotDrive, m_rightDrive2);
+    SendableRegistry.addChild(m_robotDrive, m_rightDrive4);
   }
 
   private void configure_motor(SparkMax motor) {
@@ -151,6 +163,8 @@ public class Robot extends TimedRobot {
     if (m_controller.getAButton()) {
       // do what we want when A is pressed
     }
+    SmartDashboard.putNumber("teleopPeriodic count: ", auto_count);
+    auto_count++;
   }
 
   
@@ -165,6 +179,11 @@ public class Robot extends TimedRobot {
 
   @Override
   public void autonomousPeriodic() {
+
+
+    SmartDashboard.putNumber("autonomousPeriodic count: ", auto_count);
+    auto_count++;
+
     // Drive for 2 seconds
     if (m_timer.get() < 2.0) {
       // Drive forwards half speed, make sure to turn input squaring off
