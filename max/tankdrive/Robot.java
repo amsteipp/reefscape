@@ -32,7 +32,7 @@ public class Robot extends TimedRobot {
   private final DifferentialDrive m_robotDrive;
   private final Joystick m_leftStick;
   private final Joystick m_rightStick;
-  private final int left_deviceID1 = 1; //top left motor
+  private final int left_deviceID1 = 1; //when behind the robot: top left motor
   private final int right_deviceID1 = 2;//bottom right motor
   private final int left_deviceID2 = 3; //bottom left motor
   private final int right_deviceID2 = 4; //top left motor
@@ -61,6 +61,8 @@ public class Robot extends TimedRobot {
     configure_and_invert_motor(m_leftDrive1);
     m_leftDrive3 = new SparkMax(left_deviceID2, MotorType.kBrushed);
     configure_and_invert_motor(m_leftDrive3);
+
+    // m_leftDrive1.addFollower(m_leftDrive3) Will need to add followers to compensate for extra motors
 
     m_rightDrive2 = new SparkMax(right_deviceID1, MotorType.kBrushed);
     configure_motor(m_rightDrive2);
