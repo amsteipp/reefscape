@@ -4,6 +4,8 @@
 
 // March 25, 2025
 // Eipp Test Code
+// ALL DRIVE AND FOLLOWERS AND CORAL MOTORS ENGAGED
+// NEED TO FINESS SPEED HOW WE WANT IT!
 
 package frc.robot;
 
@@ -71,28 +73,26 @@ public class Robot extends TimedRobot {
     // Initialize the SPARK MAX MAIN DRIVE MOTORS
     // using the proper CAN ID, set above for now, and the motor type
     m_leftDrive = new SparkMax(left_deviceID, MotorType.kBrushed);
-    configure_and_invert_motor(m_leftDrive);
-
-    m_rightDrive = new SparkMax(right_deviceID, MotorType.kBrushed);
-    configure_motor(m_rightDrive);
-
-    // Initialize SPARK MAX FOLLOWER MOTORS
     m_leftFollower = new SparkMax(left_follower_deviceID, MotorType.kBrushed);
-    configure_and_invert_motor(m_leftFollower);
-
+    m_rightDrive = new SparkMax(right_deviceID, MotorType.kBrushed);
     m_rightFollower = new SparkMax(right_follower_deviceID, MotorType.kBrushed);
-    configure_motor(m_rightFollower);
+    
+    configure_and_invert_motor(m_leftDrive, "no follow");
+    configure_and_invert_motor(m_leftFollower, "follow left");
+    
+    configure_motor(m_rightDrive, "no follow");  
+    configure_motor(m_rightFollower, "follow right");
 
     // Create a configuration for the follower using 2025 API from REV
     // and apply the configuration
 
-    SparkMaxConfig configLeft = new SparkMaxConfig();
-    configLeft.follow(m_leftDrive.getDeviceId()); // Set to follow the leader's device ID
-    m_leftFollower.configure(configLeft, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
+    //SparkMaxConfig configLeft = new SparkMaxConfig();
+    //configLeft.follow(m_leftDrive.getDeviceId()); // Set to follow the leader's device ID
+    //m_leftFollower.configure(configLeft, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
 
-    SparkMaxConfig configRight = new SparkMaxConfig();
-    configLeft.follow(m_rightDrive.getDeviceId()); // Set to follow the leader's device ID
-    m_leftFollower.configure(configRight, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
+    //SparkMaxConfig configRight = new SparkMaxConfig();
+    //configLeft.follow(m_rightDrive.getDeviceId()); // Set to follow the leader's device ID
+    //m_leftFollower.configure(configRight, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
 
     // Configure followers
     // Motor 3 follows motor 1 (left side)
@@ -109,7 +109,7 @@ public class Robot extends TimedRobot {
     // follower relative to leader
 
     m_coralmotor = new SparkMax(coral_deviceID, MotorType.kBrushed);
-    configure_motor(m_coralmotor);
+    configure_motor(m_coralmotor, "no follow");
 
     m_robotDrive = new DifferentialDrive(m_leftDrive::set, m_rightDrive::set);
 
@@ -122,6 +122,9 @@ public class Robot extends TimedRobot {
 
     SendableRegistry.addChild(m_robotDrive, m_leftDrive);
     SendableRegistry.addChild(m_robotDrive, m_rightDrive);
+    SendableRegistry.addChild(m_robotDrive, m_leftFollower);
+    SendableRegistry.addChild(m_robotDrive, m_rightFollower);
+
 
     // debug code below
     SmartDashboard.putString("Aquaram", "READY!");
@@ -135,7 +138,7 @@ public class Robot extends TimedRobot {
    * 
    * @param motor
    */
-  private void configure_and_invert_motor(SparkMax motor) {
+  private void configure_and_invert_motor(SparkMax motor, String follow) {
     // Create a configuration object to set the properties for the left motor
     SparkMaxConfig motor_config = new SparkMaxConfig();
 
@@ -161,6 +164,18 @@ public class Robot extends TimedRobot {
         .idleMode(SparkBaseConfig.IdleMode.kBrake) // Use brake mode
         .smartCurrentLimit(40) // Set current limit to 40 amps
         .openLoopRampRate(0.5); // Ramp rate of 0.5 seconds from 0 to full
+
+    if (follow.equals("follow left")) {
+      // ASSERT: motor passed in was m_leftFollower
+      motor_config.follow(m_leftDrive.getDeviceId()); // Set to follow the leader's device ID
+    } else if (follow.equals("follow right")) {
+      // ASSERT: motor passed in was m_rightFollower
+      motor_config.follow(m_rightDrive.getDeviceId()); // Set to follow the leader's device ID
+    } else {
+      ; // motor passed in is not a follower!
+      // ASSERT: motor passed in was m_leftDrive or m_rightDrive
+    }
+
 
     // Apply the configuration to the SPARK MAX
     motor.configure(
@@ -206,7 +221,7 @@ public class Robot extends TimedRobot {
    * 
    * @param motor
    */
-  private void configure_motor(SparkMax motor) {
+  private void configure_motor(SparkMax motor, String follow) {
     // Create a configuration object to set the properties for the left motor
     SparkMaxConfig motor_config = new SparkMaxConfig();
 
@@ -232,6 +247,20 @@ public class Robot extends TimedRobot {
         .idleMode(SparkBaseConfig.IdleMode.kBrake) // Use brake mode
         .smartCurrentLimit(40) // Set current limit to 40 amps
         .openLoopRampRate(0.5); // Ramp rate of 0.5 seconds from 0 to full
+
+
+    if (follow.equals("follow left")) {
+      // ASSERT: motor passed in was m_leftFollower
+      motor_config.follow(m_leftDrive.getDeviceId()); // Set to follow the leader's device ID
+    } else if (follow.equals("follow right")) {
+      // ASSERT: motor passed in was m_rightFollower
+      motor_config.follow(m_rightDrive.getDeviceId()); // Set to follow the leader's device ID
+    } else {
+      ; // motor passed in is not a follower!
+      // ASSERT: motor passed in was m_leftDrive or m_rightDrive
+    }
+
+
 
     // Apply the configuration to the SPARK MAX
     motor.configure(
