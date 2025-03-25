@@ -1,11 +1,9 @@
-
 // Copyright (c) FIRST and other WPILib contributors.
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
 // March 5, 2025
-// Mr. Billy Eipp
-// Sample code to test and get robot running
+// Eipp Test Code
 
 package frc.robot;
 
@@ -48,9 +46,21 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 public class Robot extends TimedRobot {
 
   private final int left_deviceID = 1;
+  private final int left_follower_deviceID = 3;  // Motor 3 follows motor 1
+
   private final int right_deviceID = 2;
+  private final int right_follower_deviceID = 4; // Motor 4 follows motor 2
+
+
+  private final SparkMax m_coralmotor;
+  private final int coral_deviceID = 5;
+
   private final SparkMax m_leftDrive;
+  private final SparkMax m_leftFollower;
   private final SparkMax m_rightDrive;
+  private final SparkMax m_rightFollower;
+
+
   private final DifferentialDrive m_robotDrive;
   private final XboxController m_controller;
   private final Timer m_timer;
@@ -66,6 +76,31 @@ public class Robot extends TimedRobot {
 
     m_rightDrive = new SparkMax(right_deviceID, MotorType.kBrushed);
     configure_motor(m_rightDrive);
+
+
+    // Initialize follower motors
+    m_leftFollower = new SparkMax(left_follower_deviceID, MotorType.kBrushed);
+    m_rightFollower = new SparkMax(right_follower_deviceID, MotorType.kBrushed);
+
+
+    // Configure followers
+    // Motor 3 follows motor 1 (left side)
+    m_leftFollower.setFollow(m_leftDrive);
+
+    // Alternative syntax if needed
+    // m_leftFollower.setFollow(m_leftDrive, false);  // false = don't invert follower relative to leader
+
+
+    // Motor 4 follows motor 2 (right side)
+    m_rightFollower.setFollow(m_rightDrive);
+    // Alternative syntax if needed
+    //m_rightFollower.setFollow(m_rightDrive, false); // false = don't invert follower relative to leader
+
+
+    m_coralmotor = new SparkMax(coral_deviceID, MotorType.kBrushed);
+    configure_motor(m_coralmotor);
+
+
 
     m_robotDrive = new DifferentialDrive(m_leftDrive::set, m_rightDrive::set);
     m_controller = new XboxController(0);
@@ -302,6 +337,26 @@ public class Robot extends TimedRobot {
     if (fault_m_leftDrive != null) {
       // Handle motor faults
       SmartDashboard.putString("fault_m_leftDrive Faults", fault_m_leftDrive.toString());
+    }
+
+
+    // Monitoring for follower motors
+    SmartDashboard.putNumber("m_leftFollower_Temperature", m_leftFollower.getMotorTemperature());
+    SmartDashboard.putNumber("m_leftFollower_Current", m_leftFollower.getOutputCurrent());
+
+    SmartDashboard.putNumber("m_rightFollower_Temperature", m_rightFollower.getMotorTemperature());
+    SmartDashboard.putNumber("m_rightFollower_Current", m_rightFollower.getOutputCurrent());
+
+
+    // Check for faults in follower motors
+    Faults fault_m_leftFollower = m_leftFollower.getFaults();
+    if (fault_m_leftFollower != null) {
+        SmartDashboard.putString("m_leftFollower Faults", fault_m_leftFollower.toString());
+    }
+
+    Faults fault_m_rightFollower = m_rightFollower.getFaults();
+    if (fault_m_rightFollower != null) {
+        SmartDashboard.putString("m_rightFollower Faults", fault_m_rightFollower.toString());
     }
 
   }
