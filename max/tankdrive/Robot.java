@@ -20,6 +20,8 @@ import edu.wpi.first.wpilibj.Timer;
 
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.wpilibj.motorcontrol.MotorController;
+import edu.wpi.first.wpilibj.motorcontrol.PWMMotorController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
@@ -35,12 +37,15 @@ public class Robot extends TimedRobot {
   private final int left_deviceID1 = 1; //when behind the robot: top left motor
   private final int right_deviceID1 = 2;//bottom right motor
   private final int left_deviceID2 = 3; //bottom left motor
-  private final int right_deviceID2 = 4; //top left motor
+  private final int right_deviceID2 = 4; //top right motor
+  private final int coral_deviceID = 5;
   private final SparkMax m_leftDrive1;
   private final SparkMax m_leftDrive3;
   private final SparkMax m_rightDrive2;
   private final SparkMax m_rightDrive4;
+  private final SparkMax m_coralmotor;
   private final XboxController m_controller;
+  
 
   public final Timer m_timer;
 
@@ -57,21 +62,26 @@ public class Robot extends TimedRobot {
     // m_rightMotor.setInverted(true); no need for this
 
     // m_robotDrive = new DifferentialDrive(m_leftMotor::set, m_rightMotor::set);
+
     m_leftDrive1 = new SparkMax(left_deviceID1, MotorType.kBrushed);
     configure_and_invert_motor(m_leftDrive1);
     m_leftDrive3 = new SparkMax(left_deviceID2, MotorType.kBrushed);
     configure_and_invert_motor(m_leftDrive3);
 
-    // m_leftDrive1.addFollower(m_leftDrive3) Will need to add followers to compensate for extra motors
+    // m_leftDrive1.addFollower(m_leftDrive3);
 
     m_rightDrive2 = new SparkMax(right_deviceID1, MotorType.kBrushed);
     configure_motor(m_rightDrive2);
     m_rightDrive4 = new SparkMax(right_deviceID2, MotorType.kBrushed);
     configure_motor(m_rightDrive4);
 
+    m_coralmotor = new SparkMax(coral_deviceID, MotorType.kBrushed);
+    configure_motor(m_coralmotor);
+
     m_robotDrive = new DifferentialDrive(m_leftDrive1::set, m_rightDrive2::set);
     m_controller = new XboxController(0);
     m_timer = new Timer();
+
 
     m_leftStick = new Joystick(0);
     m_rightStick = new Joystick(1);
@@ -195,4 +205,6 @@ public class Robot extends TimedRobot {
     }
   }
   
+  
+
 }
