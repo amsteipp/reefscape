@@ -2,13 +2,14 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-// March 5, 2025
+// March 25, 2025
 // Eipp Test Code
 
 package frc.robot;
 
 /* SPARK MAX MOTOR packages and classes we need */
 import com.revrobotics.spark.SparkMax;
+// import com.revrobotics.spark.SparkBase;
 import com.revrobotics.spark.SparkBase.Faults;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
@@ -46,11 +47,10 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 public class Robot extends TimedRobot {
 
   private final int left_deviceID = 1;
-  private final int left_follower_deviceID = 3;  // Motor 3 follows motor 1
+  private final int left_follower_deviceID = 3; // Motor 3 follows motor 1
 
   private final int right_deviceID = 2;
   private final int right_follower_deviceID = 4; // Motor 4 follows motor 2
-
 
   private final SparkMax m_coralmotor;
   private final int coral_deviceID = 5;
@@ -60,57 +60,71 @@ public class Robot extends TimedRobot {
   private final SparkMax m_rightDrive;
   private final SparkMax m_rightFollower;
 
-
   private final DifferentialDrive m_robotDrive;
   private final XboxController m_controller;
+  private final XboxController m_secondController;
   private final Timer m_timer;
 
   /** Called once at the beginning of the robot program. */
   public Robot() {
 
-    // Initialize the SPARK MAX with the CAN ID and motor type
-    // Replace "deviceID" value with your motor's CAN ID (typically 1-62)
-    // TODO: need to validate left and right to see if correct here
+    // Initialize the SPARK MAX MAIN DRIVE MOTORS
+    // using the proper CAN ID, set above for now, and the motor type
     m_leftDrive = new SparkMax(left_deviceID, MotorType.kBrushed);
     configure_and_invert_motor(m_leftDrive);
 
     m_rightDrive = new SparkMax(right_deviceID, MotorType.kBrushed);
     configure_motor(m_rightDrive);
 
-
-    // Initialize follower motors
+    // Initialize SPARK MAX FOLLOWER MOTORS
     m_leftFollower = new SparkMax(left_follower_deviceID, MotorType.kBrushed);
-    m_rightFollower = new SparkMax(right_follower_deviceID, MotorType.kBrushed);
+    configure_and_invert_motor(m_leftFollower);
 
+    m_rightFollower = new SparkMax(right_follower_deviceID, MotorType.kBrushed);
+    configure_motor(m_rightFollower);
+
+    // Create a configuration for the follower using 2025 API from REV
+    // and apply the configuration
+
+    SparkMaxConfig configLeft = new SparkMaxConfig();
+    configLeft.follow(m_leftDrive.getDeviceId()); // Set to follow the leader's device ID
+    m_leftFollower.configure(configLeft, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
+
+    SparkMaxConfig configRight = new SparkMaxConfig();
+    configLeft.follow(m_rightDrive.getDeviceId()); // Set to follow the leader's device ID
+    m_leftFollower.configure(configRight, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
 
     // Configure followers
     // Motor 3 follows motor 1 (left side)
-    m_leftFollower.setFollow(m_leftDrive);
+    // m_leftFollower.setFollow(m_leftDrive);
 
     // Alternative syntax if needed
-    // m_leftFollower.setFollow(m_leftDrive, false);  // false = don't invert follower relative to leader
-
+    // m_leftFollower.setFollow(m_leftDrive, false); // false = don't invert
+    // follower relative to leader
 
     // Motor 4 follows motor 2 (right side)
-    m_rightFollower.setFollow(m_rightDrive);
+    // m_rightFollower.setFollow(m_rightDrive);
     // Alternative syntax if needed
-    //m_rightFollower.setFollow(m_rightDrive, false); // false = don't invert follower relative to leader
-
+    // m_rightFollower.setFollow(m_rightDrive, false); // false = don't invert
+    // follower relative to leader
 
     m_coralmotor = new SparkMax(coral_deviceID, MotorType.kBrushed);
     configure_motor(m_coralmotor);
 
-
-
     m_robotDrive = new DifferentialDrive(m_leftDrive::set, m_rightDrive::set);
+
+    // Set maximum output to 100% (default is already 1.0)
+    m_robotDrive.setMaxOutput(1.0);
+
     m_controller = new XboxController(0);
+    m_secondController = new XboxController(1); // Add this line with port 1
     m_timer = new Timer();
 
     SendableRegistry.addChild(m_robotDrive, m_leftDrive);
     SendableRegistry.addChild(m_robotDrive, m_rightDrive);
 
     // debug code below
-    SmartDashboard.putString("lets_go", "Aquamram Ready!");
+    SmartDashboard.putString("Aquaram", "READY!");
   }
 
   /**
@@ -124,6 +138,19 @@ public class Robot extends TimedRobot {
   private void configure_and_invert_motor(SparkMax motor) {
     // Create a configuration object to set the properties for the left motor
     SparkMaxConfig motor_config = new SparkMaxConfig();
+
+    // Increase voltage compensation to ensure consistent performance
+    motor_config.voltageCompensation(12.0);
+    /*
+     * The parameter nominalVoltage is the
+     * "Nominal voltage to compensate output to".
+     * This means the motor controller will adjust its output to maintain consistent
+     * performance
+     * regardless of battery voltage fluctuations. For example, if you set it to
+     * 12.0 volts,
+     * the motor will behave the same way whether your battery is at 13 volts or
+     * has dropped to 11 volts
+     */
 
     // Configure motor settings
     // NOTE: innverting direction of a speed controller if pass true to
@@ -183,6 +210,19 @@ public class Robot extends TimedRobot {
     // Create a configuration object to set the properties for the left motor
     SparkMaxConfig motor_config = new SparkMaxConfig();
 
+    // Increase voltage compensation to ensure consistent performance
+    motor_config.voltageCompensation(12.0);
+    /*
+     * The parameter nominalVoltage is the
+     * "Nominal voltage to compensate output to".
+     * This means the motor controller will adjust its output to maintain consistent
+     * performance
+     * regardless of battery voltage fluctuations. For example, if you set it to
+     * 12.0 volts,
+     * the motor will behave the same way whether your battery is at 13 volts or
+     * has dropped to 11 volts
+     */
+
     // Configure motor settings
     // NOTE: innverting direction of a speed controller if pass true to
     // inverted(true)
@@ -239,7 +279,43 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during teleoperated mode. */
   @Override
   public void teleopPeriodic() {
-    m_robotDrive.arcadeDrive(-m_controller.getLeftY(), -m_controller.getRightX());
+
+    // TODO: test square inputs, this should be true for finer grained steering
+    boolean squareInputs = true;
+
+    // setting squareInputs to false will give you a linear response curve:
+    // Use linear input response -- this will speed up robot, but reduce finer
+    // control
+    // m_robotDrive.arcadeDrive(-m_controller.getLeftY(), -m_controller.getRightX(),
+    // !squareInputs);
+
+    // control driving with our first controller
+    m_robotDrive.arcadeDrive(-m_controller.getLeftY(), -m_controller.getRightX(), squareInputs);
+
+    double speedMultiplier = 1.5;
+
+    // TODO: test below if we want it
+    // Boost speed when A button is held
+    // if (m_controller.getAButton()) {
+    // speedMultiplier = 1.0; // Full speed
+    // } else {
+    // speedMultiplier = 0.8; // Normal speed
+    // }
+
+    // TODO: test below if we want it
+    // Scale inputs by 1.5x (will be clamped to [-1.0, 1.0])
+    m_robotDrive.arcadeDrive(-m_controller.getLeftY() * speedMultiplier, -m_controller.getRightX() * speedMultiplier);
+
+    // Control the coral motor with the second controller
+    // You can use any axis you prefer - this example uses the left Y axis
+
+    // TODO: SET CORAL MOTOR TO A SLOWER SPEED OR ADD A DEFAULT SPEED AND THE A
+    // BOOST IF A IS PRESSED
+    double coralPower = -m_secondController.getLeftY();
+    m_coralmotor.set(coralPower);
+    // Optionally add to dashboard for debugging
+    SmartDashboard.putNumber("Coral Motor Power", coralPower);
+
   }
 
   /** This function is called once each time the robot enters test mode. */
@@ -261,17 +337,8 @@ public class Robot extends TimedRobot {
 
   @Override
   public void disabledPeriodic() {
-    // This method is called periodically while the robot is in disabled mode
 
-    // Most teams either:
-    // 1. Leave this empty (but still override it to prevent the warning)
-    // 2. Use it for diagnostic purposes like displaying sensor values
-
-    // Example: If you want to update dashboard values while disabled
-    SmartDashboard.putNumber("m_leftDrive__Temp", m_leftDrive.getMotorTemperature());
-    SmartDashboard.putNumber("m_leftDrive__Temp", m_leftDrive.getMotorTemperature());
-
-    // If you have nothing to do in disabled mode, just leave the method body empty
+    showDebugValues("disabledPeriodic");
   }
 
   /*
@@ -301,17 +368,38 @@ public class Robot extends TimedRobot {
   @Override
   public void robotPeriodic() {
 
-    // TODO: this is only exmple code to get this started... feel free to remove :)
-    // EIPP
+    showDebugValues("robotPeriodic");
 
-    // 1. Update dashboard with sensor readings and robot state
+  }
+
+  private void showDebugValues(String caller) {
+
+    SmartDashboard.putString("periodic caller", caller);
+
+    // Monitoring for main left drive motor
     SmartDashboard.putNumber("m_leftDrive__Temperature", m_leftDrive.getMotorTemperature());
     SmartDashboard.putNumber("m_leftDrive__Current", m_leftDrive.getOutputCurrent());
     SmartDashboard.putNumber("m_leftDrive__Voltage", m_leftDrive.getBusVoltage() * m_leftDrive.getAppliedOutput());
 
-    SmartDashboard.putNumber("m_rightDrive", m_rightDrive.getMotorTemperature());
-    SmartDashboard.putNumber("m_rightDrive", m_rightDrive.getOutputCurrent());
-    SmartDashboard.putNumber("m_rightDrive", m_rightDrive.getBusVoltage() * m_leftDrive.getAppliedOutput());
+    // Monitoring for main right drive motor
+    SmartDashboard.putNumber("m_rightDrive_TEMP", m_rightDrive.getMotorTemperature());
+    SmartDashboard.putNumber("m_rightDrive_CURRENT", m_rightDrive.getOutputCurrent());
+    SmartDashboard.putNumber("m_rightDrive_VOLTAGE", m_rightDrive.getBusVoltage() * m_leftDrive.getAppliedOutput());
+
+    // Monitoring for left follower motors
+    SmartDashboard.putNumber("m_leftFollower_Temperature", m_leftFollower.getMotorTemperature());
+    SmartDashboard.putNumber("m_leftFollower_Current", m_leftFollower.getOutputCurrent());
+    SmartDashboard.putNumber("m_rightDrive_VOLTAGE", m_leftFollower.getBusVoltage() * m_leftDrive.getAppliedOutput());
+
+    // Monitoring for left follower motors
+    SmartDashboard.putNumber("m_rightFollower_Temperature", m_rightFollower.getMotorTemperature());
+    SmartDashboard.putNumber("m_rightFollower_Current", m_rightFollower.getOutputCurrent());
+    SmartDashboard.putNumber("m_rightDrive_VOLTAGE", m_rightFollower.getBusVoltage() * m_leftDrive.getAppliedOutput());
+
+    // Add monitoring for coral motor
+    SmartDashboard.putNumber("m_coralmotor_Temperature", m_coralmotor.getMotorTemperature());
+    SmartDashboard.putNumber("m_coralmotor_Current", m_coralmotor.getOutputCurrent());
+    SmartDashboard.putNumber("m_coralmotor_Voltage", m_coralmotor.getBusVoltage() * m_coralmotor.getAppliedOutput());
 
     // 2. Run subsystem periodic methods (if using command-based programming)
     // CommandScheduler.getInstance().run(); // If using WPILib command-based
@@ -327,38 +415,52 @@ public class Robot extends TimedRobot {
     // dataLogger.logData();
 
     // 6. Check for faults or error conditions
-    Faults fault_m_rightDrive = m_rightDrive.getFaults();
-    if (fault_m_rightDrive != null) {
-      // Handle motor faults
-      SmartDashboard.putString("m_rightDrive Faults", fault_m_rightDrive.toString());
+
+    // Check faults for all motors
+    checkAndDisplayFaults(m_leftDrive, "Left Drive");
+    checkAndDisplayFaults(m_rightDrive, "Right Drive");
+    checkAndDisplayFaults(m_leftFollower, "Left Follower");
+    checkAndDisplayFaults(m_rightFollower, "Right Follower");
+    checkAndDisplayFaults(m_coralmotor, "Coral Motor");
+
+  }
+
+  private void checkAndDisplayFaults(SparkMax motor, String motorName) {
+    Faults faults = motor.getFaults();
+    if (faults != null) {
+      StringBuilder faultString = new StringBuilder();
+
+      // Check each fault flag using the actual fields from the 2025 API
+      if (faults.other)
+        faultString.append("Other, ");
+      if (faults.motorType)
+        faultString.append("Motor Type, ");
+      if (faults.sensor)
+        faultString.append("Sensor, ");
+      if (faults.can)
+        faultString.append("CAN, ");
+      if (faults.temperature)
+        faultString.append("Temperature, ");
+      if (faults.gateDriver)
+        faultString.append("Gate Driver, ");
+      if (faults.escEeprom)
+        faultString.append("ESC EEPROM, ");
+      if (faults.firmware)
+        faultString.append("Firmware, ");
+
+      // Remove trailing comma and space if any faults were found
+      if (faultString.length() > 0) {
+        faultString.setLength(faultString.length() - 2);
+      } else {
+        faultString.append("None");
+      }
+
+      // show the debug string
+      SmartDashboard.putString(motorName + " Faults", faultString.toString());
+
+      // Display the raw fault bits for debugging
+      SmartDashboard.putNumber(motorName + " Raw Fault Bits", faults.rawBits);
     }
-
-    Faults fault_m_leftDrive = m_leftDrive.getFaults();
-    if (fault_m_leftDrive != null) {
-      // Handle motor faults
-      SmartDashboard.putString("fault_m_leftDrive Faults", fault_m_leftDrive.toString());
-    }
-
-
-    // Monitoring for follower motors
-    SmartDashboard.putNumber("m_leftFollower_Temperature", m_leftFollower.getMotorTemperature());
-    SmartDashboard.putNumber("m_leftFollower_Current", m_leftFollower.getOutputCurrent());
-
-    SmartDashboard.putNumber("m_rightFollower_Temperature", m_rightFollower.getMotorTemperature());
-    SmartDashboard.putNumber("m_rightFollower_Current", m_rightFollower.getOutputCurrent());
-
-
-    // Check for faults in follower motors
-    Faults fault_m_leftFollower = m_leftFollower.getFaults();
-    if (fault_m_leftFollower != null) {
-        SmartDashboard.putString("m_leftFollower Faults", fault_m_leftFollower.toString());
-    }
-
-    Faults fault_m_rightFollower = m_rightFollower.getFaults();
-    if (fault_m_rightFollower != null) {
-        SmartDashboard.putString("m_rightFollower Faults", fault_m_rightFollower.toString());
-    }
-
   }
 
 }
