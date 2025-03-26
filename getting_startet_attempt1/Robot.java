@@ -309,6 +309,20 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
 
+    // Check if B button is pressed for emergency stop
+    if (m_controller.getBButton()) {
+        // Stop all drive motors
+        m_robotDrive.stopMotor();
+        // Stop coral motor
+        m_coralmotor.set(0);
+        
+        // Optional: Display brake status on dashboard
+        SmartDashboard.putBoolean("Emergency Brake Active", true);
+        return; // Exit the method early to prevent other drive commands
+    } else {
+        SmartDashboard.putBoolean("Emergency Brake Active", false);
+    }
+
     // TODO: test square inputs, this should be true for finer grained steering
     boolean squareInputs = true;
 
