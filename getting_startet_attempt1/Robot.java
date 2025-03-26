@@ -345,6 +345,21 @@ public class Robot extends TimedRobot {
     // speedMultiplier = 0.8; // Normal speed
     // }
 
+
+    double turnSpeedMultiplier = 0.6; // Reduce this value to make turning slower
+    /*
+      turnSpeedMultiplier (set to 0.7 or any value between 0.3-0.8 for slower turning)
+      You can adjust the turnSpeedMultiplier value to fine-tune the turning sensitivity. 
+      Lower values (like 0.5) will make turning much slower, while values closer to 1.0 will be more responsive
+    */
+    
+    // Apply different multipliers to drive and turn inputs
+    m_robotDrive.arcadeDrive(
+        -m_controller.getLeftY() * driveSpeedMultiplier, 
+        -m_controller.getRightX() * turnSpeedMultiplier, 
+        squareInputs
+    );
+
     // TODO: test below if we want it
     // Scale inputs by 1.5x (will be clamped to [-1.0, 1.0])
     m_robotDrive.arcadeDrive(-m_controller.getLeftY() * speedMultiplier, -m_controller.getRightX() * speedMultiplier);
