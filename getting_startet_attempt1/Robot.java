@@ -355,24 +355,35 @@ public class Robot extends TimedRobot {
     
     // Apply different multipliers to drive and turn inputs
     m_robotDrive.arcadeDrive(
-        -m_controller.getLeftY() * driveSpeedMultiplier, 
+        -m_controller.getLeftY() * speedMultiplier, 
         -m_controller.getRightX() * turnSpeedMultiplier, 
         squareInputs
     );
 
     // TODO: test below if we want it
     // Scale inputs by 1.5x (will be clamped to [-1.0, 1.0])
-    m_robotDrive.arcadeDrive(-m_controller.getLeftY() * speedMultiplier, -m_controller.getRightX() * speedMultiplier);
+    // m_robotDrive.arcadeDrive(-m_controller.getLeftY() * speedMultiplier, -m_controller.getRightX() * speedMultiplier);
 
     // Control the coral motor with the second controller
     // You can use any axis you prefer - this example uses the left Y axis
 
     // TODO: SET CORAL MOTOR TO A SLOWER SPEED OR ADD A DEFAULT SPEED AND THE A
     // BOOST IF A IS PRESSED
+    /*
     double coralPower = -m_secondController.getLeftY();
     m_coralmotor.set(coralPower);
     // Optionally add to dashboard for debugging
     SmartDashboard.putNumber("Coral Motor Power", coralPower);
+    */
+
+    // For bidirectional control using both triggers
+    double coralPower = m_controller.getRightTriggerAxis() - m_controller.getLeftTriggerAxis();
+    coralPower = coralPower * 0.8; // Adjust maximum power if needed
+    m_coralmotor.set(coralPower);
+
+    m_coralmotor.set(coralPower);
+    SmartDashboard.putNumber("Coral Motor Power", coralPower);
+    
 
   }
 
