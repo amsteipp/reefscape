@@ -4,8 +4,6 @@
 
 // March 25, 2025
 // Eipp Test Code
-// ALL DRIVE AND FOLLOWERS AND CORAL MOTORS ENGAGED
-// NEED TO FINESS SPEED HOW WE WANT IT!
 
 package frc.robot;
 
@@ -21,11 +19,13 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 
 /* WPILIB packages and classes we need */
 import edu.wpi.first.util.sendable.SendableRegistry;
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+
 
 /* 
  * The below code is from the sample code that generated this file 
@@ -70,6 +70,8 @@ public class Robot extends TimedRobot {
   /** Called once at the beginning of the robot program. */
   public Robot() {
 
+    //start camera
+    CameraServer.startAutomaticCapture();
     // Initialize the SPARK MAX MAIN DRIVE MOTORS
     // using the proper CAN ID, set above for now, and the motor type
     m_leftDrive = new SparkMax(left_deviceID, MotorType.kBrushed);
@@ -292,8 +294,15 @@ public class Robot extends TimedRobot {
     if (m_timer.get() < 2.0) {
       // Drive forwards half speed, make sure to turn input squaring off
       m_robotDrive.arcadeDrive(0.5, 0.0, false);
+
     } else {
-      m_robotDrive.stopMotor(); // stop robot
+        m_robotDrive.stopMotor(); // stop robot
+        if (m_timer.get() > 3.0 && m_timer.get() < 3.50) {
+          m_coralmotor.set(.8); // testing  
+        } else {   
+          m_coralmotor.set(0);
+        }
+     
     }
   }
 
@@ -311,16 +320,16 @@ public class Robot extends TimedRobot {
 
     // Check if B button is pressed for emergency stop
     if (m_controller.getBButton()) {
-        // Stop all drive motors
-        m_robotDrive.stopMotor();
-        // Stop coral motor
-        m_coralmotor.set(0);
-        
-        // Optional: Display brake status on dashboard
-        SmartDashboard.putBoolean("Emergency Brake Active", true);
-        return; // Exit the method early to prevent other drive commands
+      // Stop all drive motors
+      m_robotDrive.stopMotor();
+      // Stop coral motor
+      m_coralmotor.set(0);
+      
+      // Optional: Display brake status on dashboard
+      SmartDashboard.putBoolean("Emergency Brake Active", true);
+      return; // Exit the method early to prevent other drive commands
     } else {
-        SmartDashboard.putBoolean("Emergency Brake Active", false);
+      SmartDashboard.putBoolean("Emergency Brake Active", false);
     }
 
     // TODO: test square inputs, this should be true for finer grained steering
@@ -335,17 +344,18 @@ public class Robot extends TimedRobot {
     // control driving with our first controller
     m_robotDrive.arcadeDrive(-m_controller.getLeftY(), -m_controller.getRightX(), squareInputs);
 
-    double speedMultiplier = 1.5;
+    double speedMultiplier = 1.0;
 
     // TODO: test below if we want it
-    // Boost speed when A button is held
-    // if (m_controller.getAButton()) {
-    // speedMultiplier = 1.0; // Full speed
-    // } else {
-    // speedMultiplier = 0.8; // Normal speed
-    // }
+    // BOOST speed when A button is held
+    if (m_controller.getAButton()) {
+      speedMultiplier = 1; // 1.0 is Full speed
+    } else {
+      speedMultiplier = .8; // Normal speed
+    }
 
 
+    // TODO: Adjust accordingly
     double turnSpeedMultiplier = 0.6; // Reduce this value to make turning slower
     /*
       turnSpeedMultiplier (set to 0.7 or any value between 0.3-0.8 for slower turning)
@@ -360,6 +370,7 @@ public class Robot extends TimedRobot {
         squareInputs
     );
 
+
     // TODO: test below if we want it
     // Scale inputs by 1.5x (will be clamped to [-1.0, 1.0])
     // m_robotDrive.arcadeDrive(-m_controller.getLeftY() * speedMultiplier, -m_controller.getRightX() * speedMultiplier);
@@ -369,7 +380,7 @@ public class Robot extends TimedRobot {
 
     // TODO: SET CORAL MOTOR TO A SLOWER SPEED OR ADD A DEFAULT SPEED AND THE A
     // BOOST IF A IS PRESSED
-    /*
+    /* 
     double coralPower = -m_secondController.getLeftY();
     m_coralmotor.set(coralPower);
     // Optionally add to dashboard for debugging
@@ -381,9 +392,8 @@ public class Robot extends TimedRobot {
     coralPower = coralPower * 0.8; // Adjust maximum power if needed
     m_coralmotor.set(coralPower);
 
-    m_coralmotor.set(coralPower);
+    // m_coralmotor.set(coralPower);
     SmartDashboard.putNumber("Coral Motor Power", coralPower);
-    
 
   }
 
