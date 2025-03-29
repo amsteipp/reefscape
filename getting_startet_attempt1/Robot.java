@@ -291,17 +291,19 @@ public class Robot extends TimedRobot {
   @Override
   public void autonomousPeriodic() {
     // Drive for 2 seconds
-    if (m_timer.get() < 2.0) {
+    if (m_timer.get() < 1.90) {
       // Drive forwards half speed, make sure to turn input squaring off
       m_robotDrive.arcadeDrive(0.5, 0.0, false);
 
     } else {
         m_robotDrive.stopMotor(); // stop robot
-        if (m_timer.get() > 3.0 && m_timer.get() < 3.50) {
-          m_coralmotor.set(.8); // testing  
+        if (m_timer.get() < 3.00) {
+          m_coralmotor.set(.6); // testing  
         } else {   
           m_coralmotor.set(0);
+          m_robotDrive.stopMotor();
         }
+
      
     }
   }
@@ -318,7 +320,7 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
 
-    // Check if B button is pressed for emergency stop
+    // Check if B button is pressed for emergency stop. aka: BREAK
     if (m_controller.getBButton()) {
       // Stop all drive motors
       m_robotDrive.stopMotor();
@@ -333,7 +335,7 @@ public class Robot extends TimedRobot {
     }
 
     // TODO: test square inputs, this should be true for finer grained steering
-    boolean squareInputs = true;
+    boolean squareInputs = false;
 
     // setting squareInputs to false will give you a linear response curve:
     // Use linear input response -- this will speed up robot, but reduce finer
@@ -344,19 +346,19 @@ public class Robot extends TimedRobot {
     // control driving with our first controller
     m_robotDrive.arcadeDrive(-m_controller.getLeftY(), -m_controller.getRightX(), squareInputs);
 
-    double speedMultiplier = 1.0;
+    double speedMultiplier = 4.0;
 
     // TODO: test below if we want it
     // BOOST speed when A button is held
-    if (m_controller.getAButton()) {
-      speedMultiplier = 1; // 1.0 is Full speed
+    if (m_controller.getAButton()) { 
+      speedMultiplier =4.0; // 1.0 is Full speed
     } else {
-      speedMultiplier = .8; // Normal speed
+      speedMultiplier = 4.0; // Normal speed
     }
 
 
     // TODO: Adjust accordingly
-    double turnSpeedMultiplier = 0.6; // Reduce this value to make turning slower
+    double turnSpeedMultiplier = 4.0; // Reduce this value to make turning slower
     /*
       turnSpeedMultiplier (set to 0.7 or any value between 0.3-0.8 for slower turning)
       You can adjust the turnSpeedMultiplier value to fine-tune the turning sensitivity. 
@@ -389,8 +391,16 @@ public class Robot extends TimedRobot {
 
     // For bidirectional control using both triggers
     double coralPower = m_controller.getRightTriggerAxis() - m_controller.getLeftTriggerAxis();
-    coralPower = coralPower * 0.8; // Adjust maximum power if needed
-    m_coralmotor.set(coralPower);
+    // coralPower = coralPower * 0.6; // Adjust maximum power if needed
+    // m_coralmotor.set(coralPower);
+    if (m_controller.getAButton()) { 
+      coralPower = coralPower * 1.0; // 1.0 is Full speed
+    }
+      else {
+        coralPower = coralPower * 0.6;
+      }
+      m_coralmotor.set(coralPower);
+
 
     // m_coralmotor.set(coralPower);
     SmartDashboard.putNumber("Coral Motor Power", coralPower);
@@ -468,7 +478,7 @@ public class Robot extends TimedRobot {
     // Monitoring for left follower motors
     SmartDashboard.putNumber("m_leftFollower_Temperature", m_leftFollower.getMotorTemperature());
     SmartDashboard.putNumber("m_leftFollower_Current", m_leftFollower.getOutputCurrent());
-    SmartDashboard.putNumber("m_rightDrive_VOLTAGE", m_leftFollower.getBusVoltage() * m_leftDrive.getAppliedOutput());
+    SmartDashboard.putNumber("m_leftFollower_VOLTAGE", m_leftFollower.getBusVoltage() * m_leftDrive.getAppliedOutput());
 
     // Monitoring for left follower motors
     SmartDashboard.putNumber("m_rightFollower_Temperature", m_rightFollower.getMotorTemperature());
